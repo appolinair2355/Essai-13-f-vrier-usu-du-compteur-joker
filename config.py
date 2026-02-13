@@ -14,11 +14,11 @@ def parse_channel_id(env_var: str, default: str) -> int:
 # ID du canal source
 SOURCE_CHANNEL_ID = parse_channel_id('SOURCE_CHANNEL_ID', os.getenv('SOURCE_CHANNEL_ID', '-1002682552255'))
 
-# ID du canal de contrôle (Mirror)
-CONTROL_CHANNEL_ID = parse_channel_id('CONTROL_CHANNEL_ID', os.getenv('CONTROL_CHANNEL_ID', '-1002674389383'))
+# ID du canal de contrôle (Mirror) / Canal source 2
+SOURCE_CHANNEL_2_ID = parse_channel_id('SOURCE_CHANNEL_2_ID', os.getenv('SOURCE_CHANNEL_2_ID', '-1002674389383'))
 
 # ID du canal de prédiction
-PREDICTION_CHANNEL_ID = parse_channel_id('PREDICTION_CHANNEL_ID', os.getenv('PREDICTION_CHANNEL_ID', '-1002935867322'))
+PREDICTION_CHANNEL_ID = parse_channel_id('PREDICTION_CHANNEL_ID', os.getenv('PREDICTION_CHANNEL_ID', '-1002543915361'))
 
 # Miroirs
 MIRROR_PAIRS = {
