@@ -874,12 +874,14 @@ async def start_bot():
 async def main():
     """Fonction principale pour lancer le serveur web, le bot et la tâche de reset."""
     try:
-        await start_web_server()
-
+        # Démarrer le bot Telegram en premier
         success = await start_bot()
         if not success:
             logger.error("Échec du démarrage du bot")
             return
+
+        # Démarrer le serveur web APRÈS le bot
+        await start_web_server()
 
         # Lancement de la tâche de reset en arrière-plan
         asyncio.create_task(schedule_daily_reset())
