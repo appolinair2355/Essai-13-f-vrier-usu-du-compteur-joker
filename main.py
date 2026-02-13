@@ -36,10 +36,6 @@ if not BOT_TOKEN:
 
 logger.info(f"Configuration: SOURCE_CHANNEL={SOURCE_CHANNEL_ID}, SOURCE_CHANNEL_2={SOURCE_CHANNEL_2_ID}, PREDICTION_CHANNEL={PREDICTION_CHANNEL_ID}")
 
-# Initialisation du client Telegram avec session string ou nouvelle session
-session_string = os.getenv('TELEGRAM_SESSION', '')
-client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
-
 # --- Variables Globales d'État ---
 # Prédictions actives (déjà envoyées au canal de prédiction)
 pending_predictions = {}
@@ -65,6 +61,9 @@ USER_A = 1                   # Valeur 'a' choisie par l'utilisateur (entier natu
 source_channel_ok = False
 prediction_channel_ok = False
 transfer_enabled = True # Initialisé à True
+
+# Client Telegram - sera initialisé dans main()
+client = None
 
 # --- NOUVELLE FONCTION: Contrôle horaire des prédictions ---
 
@@ -635,12 +634,12 @@ async def handle_edited_message(event):
     except Exception as e:
         logger.error(f"Erreur handle_edited_message: {e}")
 
-# --- Gestion des Messages (Hooks Telethon) ---
-
-client.add_event_handler(handle_message, events.NewMessage())
-client.add_event_handler(handle_edited_message, events.MessageEdited())
-
 # --- Commandes Administrateur ---
+
+async def setup_handlers():
+    """Configure les gestionnaires d'événements."""
+    client.add_event_handler(handle_message, events.NewMessage())
+    client.add_event_handler(handle_edited_message, events.MessageEdited())
 
 @client.on(events.NewMessage(pattern='/start'))
 async def cmd_start(event):
@@ -832,9 +831,17 @@ async def schedule_daily_reset():
 
 async def start_bot():
     """Démarre le client Telegram et les vérifications initiales."""
-    global source_channel_ok, prediction_channel_ok
+    global source_channel_ok, prediction_channel_ok, client
+    
+    # Initialiser le client ici, dans la boucle d'événements
+    session_string = os.getenv('TELEGRAM_SESSION', '')
+    client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
+    
     try:
         await client.start(bot_token=BOT_TOKEN)
+        
+        # Configurer les gestionnaires d'événements
+        await setup_handlers()
         
         # Vérifier l'accès au canal de prédiction
         if PREDICTION_CHANNEL_ID and PREDICTION_CHANNEL_ID != 0:
@@ -894,7 +901,7 @@ async def main():
         import traceback
         logger.error(traceback.format_exc())
     finally:
-        if client.is_connected():
+        if client and client.is_connected():
             await client.disconnect()
 
 if __name__ == '__main__':
