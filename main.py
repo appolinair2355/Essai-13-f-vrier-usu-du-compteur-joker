@@ -634,19 +634,12 @@ async def handle_edited_message(event):
     except Exception as e:
         logger.error(f"Erreur handle_edited_message: {e}")
 
-# --- Commandes Administrateur ---
+# --- Commandes Administrateur (fonctions) ---
 
-async def setup_handlers():
-    """Configure les gestionnaires d'événements."""
-    client.add_event_handler(handle_message, events.NewMessage())
-    client.add_event_handler(handle_edited_message, events.MessageEdited())
-
-@client.on(events.NewMessage(pattern='/start'))
 async def cmd_start(event):
     if event.is_group or event.is_channel: return
     await event.respond("🤖 **Bot de Prédiction Baccarat**\n\nCommandes: `/status`, `/help`, `/debug`, `/checkchannels`")
 
-@client.on(events.NewMessage(pattern=r'^/a (\d+)$'))
 async def cmd_set_a_shortcut(event):
     if event.is_group or event.is_channel: return
     if event.sender_id != ADMIN_ID and ADMIN_ID != 0: return
@@ -659,7 +652,6 @@ async def cmd_set_a_shortcut(event):
     except Exception as e:
         await event.respond(f"❌ Erreur: {e}")
 
-@client.on(events.NewMessage(pattern=r'^/set_a (\d+)$'))
 async def cmd_set_a(event):
     if event.is_group or event.is_channel: return
     if event.sender_id != ADMIN_ID and ADMIN_ID != 0: return
@@ -672,7 +664,6 @@ async def cmd_set_a(event):
     except Exception as e:
         await event.respond(f"❌ Erreur: {e}")
 
-@client.on(events.NewMessage(pattern='/status'))
 async def cmd_status(event):
     if event.is_group or event.is_channel: return
     if event.sender_id != ADMIN_ID and ADMIN_ID != 0:
@@ -714,7 +705,6 @@ async def cmd_status(event):
 
     await event.respond(status_msg)
 
-@client.on(events.NewMessage(pattern='/help'))
 async def cmd_help(event):
     if event.is_group or event.is_channel: return
     await event.respond(f"""📖 **Aide - Bot de Prédiction V3**
@@ -737,7 +727,6 @@ async def cmd_help(event):
 - `/debug` : Infos techniques.
 """)
 
-@client.on(events.NewMessage(pattern='/checkchannels'))
 async def cmd_check_channels(event):
     """Commande pour vérifier l'accès aux canaux"""
     if event.is_group or event.is_channel: return
@@ -770,6 +759,20 @@ async def cmd_check_channels(event):
         check_msg += f"📢 **Canal de prédiction:** ⚠️ Non configuré\n"
     
     await event.respond(check_msg)
+
+def setup_command_handlers():
+    """Configure tous les gestionnaires de commandes."""
+    client.add_event_handler(cmd_start, events.NewMessage(pattern='/start'))
+    client.add_event_handler(cmd_set_a_shortcut, events.NewMessage(pattern=r'^/a (\d+)$'))
+    client.add_event_handler(cmd_set_a, events.NewMessage(pattern=r'^/set_a (\d+)$'))
+    client.add_event_handler(cmd_status, events.NewMessage(pattern='/status'))
+    client.add_event_handler(cmd_help, events.NewMessage(pattern='/help'))
+    client.add_event_handler(cmd_check_channels, events.NewMessage(pattern='/checkchannels'))
+
+def setup_message_handlers():
+    """Configure les gestionnaires de messages des canaux."""
+    client.add_event_handler(handle_message, events.NewMessage())
+    client.add_event_handler(handle_edited_message, events.MessageEdited())
 
 # --- Serveur Web et Démarrage ---
 
@@ -840,8 +843,9 @@ async def start_bot():
     try:
         await client.start(bot_token=BOT_TOKEN)
         
-        # Configurer les gestionnaires d'événements
-        await setup_handlers()
+        # Configurer les gestionnaires d'événements APRÈS l'initialisation du client
+        setup_message_handlers()
+        setup_command_handlers()
         
         # Vérifier l'accès au canal de prédiction
         if PREDICTION_CHANNEL_ID and PREDICTION_CHANNEL_ID != 0:
