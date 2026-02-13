@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: telegram-prediction-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+      - key: SOURCE_CHANNEL_ID
+        sync: false
+      - key: CONTROL_CHANNEL_ID
+        sync: false
+      - key: PREDICTION_CHANNEL_ID
+        sync: false
+      - key: PORT
+        value: 10000
